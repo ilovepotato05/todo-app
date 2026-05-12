@@ -6,6 +6,33 @@ require("dotenv").config();
 const app = express();
 const todos = [];
 
+const mongoose = require("mongoose");
+require("dotenv").config();
+
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log("MongoDB connected"))
+    .catch((err) => console.error("MongoDB connection error:", err));
+
+
+const Task = require("./models/Task");
+app.get("/tasks", async (req, res) => {
+    const tasks = await Task.find();
+    res.json(tasks);
+});
+
+app.post("/tasks", async (req, res) => {
+    const task = await Task.create({
+        text: req.body.text,
+        completed: false
+    });
+    res.json(task);
+});
+
+app.delete("/tasks/:id", async (req, res) => {
+    await Task.findByIdAndDelete(req.params.id);
+    res.json({ message: "Task deleted" });
+});
+
 app.use(cors());
 app.use(express.json());
 

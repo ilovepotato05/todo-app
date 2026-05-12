@@ -113,7 +113,7 @@ function App() {
     <main className="app-shell">
       <section className="hero-card">
         <div className="hero-copy">
-          <p className="eyebrow">Cloud To-Do App</p>
+          <p className="eyebrow">ToDo Buddy</p>
           <h1>Plan the day. Check it off. Keep moving.</h1>
           <p className="hero-text">
             A small full-stack todo app with a React frontend and an Express API.

@@ -119,21 +119,6 @@ function App() {
             A small full-stack todo app with a React frontend and an Express API.
           </p>
         </div>
-
-        <div className="stats">
-          <div>
-            <strong>{todos.length}</strong>
-            <span>Total</span>
-          </div>
-          <div>
-            <strong>{remainingCount}</strong>
-            <span>Left</span>
-          </div>
-          <div>
-            <strong>{completedCount}</strong>
-            <span>Done</span>
-          </div>
-        </div>
       </section>
 
       <section className="workspace-card">
@@ -153,9 +138,27 @@ function App() {
             {isSubmitting ? 'Adding...' : 'Add task'}
           </button>
         </form>
-
         {error ? <p className="status status-error">{error}</p> : null}
+      </section>
 
+      <section className="stats-card">
+        <div className="stats">
+          <div>
+            <strong>{todos.length}</strong>
+            <span>Total</span>
+          </div>
+          <div>
+            <strong>{remainingCount}</strong>
+            <span>Left</span>
+          </div>
+          <div>
+            <strong>{completedCount}</strong>
+            <span>Done</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="todo-section">
         {isLoading ? (
           <div className="empty-state">
             <p>Loading your tasks...</p>

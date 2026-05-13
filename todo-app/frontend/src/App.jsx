@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import axios from 'axios'
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:5000').replace(/\/$/, '')
 const API_URL = `${API_BASE_URL}/api/todos`
+
 
 function App() {
   const [todos, setTodos] = useState([])
@@ -11,17 +13,13 @@ function App() {
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+
   useEffect(() => {
+
     const loadTodos = async () => {
       try {
-        const response = await fetch(API_URL)
-
-        if (!response.ok) {
-          throw new Error('Unable to load todos')
-        }
-
-        const data = await response.json()
-        setTodos(data)
+        const response = await axios.get(API_URL)
+        setTodos(response.data)
       } catch {
         setError('The todo service is unavailable right now.')
       } finally {

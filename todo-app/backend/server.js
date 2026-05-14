@@ -1,20 +1,27 @@
 const express = require("express");
 const cors = require("cors");
-const { randomUUID } = require("crypto");
 require("dotenv").config();
 
 const app = express();
-const todos = [];
+
+app.use(cors());
+app.use(express.json());
 
 const mongoose = require("mongoose");
-require("dotenv").config();
 
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("MongoDB connected"))
     .catch((err) => console.error("MongoDB connection error:", err));
 
-
 const Task = require("./models/Task");
+
+const mapTask = (t) => ({ id: t._id.toString(), text: t.text, completed: t.completed, createdAt: t.createdAt });
+
+app.get("/", (req, res) => {
+    res.json({ status: "ok", message: "Backend is running" });
+});
+
+// Keep a plain /tasks API (raw mongoose documents)
 app.get("/tasks", async (req, res) => {
     const tasks = await Task.find();
     res.json(tasks);
@@ -33,55 +40,43 @@ app.delete("/tasks/:id", async (req, res) => {
     res.json({ message: "Task deleted" });
 });
 
-app.use(cors());
-app.use(express.json());
-
-app.get("/", (req, res) => {
-    res.json({ status: "ok", message: "Backend is running" });
+// Frontend expects /api/todos with `id` field and createdAt; make these use MongoDB
+app.get("/api/todos", async (req, res) => {
+    const items = await Task.find().sort({ createdAt: -1 }).lean();
+    res.json(items.map(mapTask));
 });
 
-app.get("/api/todos", (req, res) => {
-    res.json(todos);
-});
-
-app.post("/api/todos", (req, res) => {
+app.post("/api/todos", async (req, res) => {
     const text = (req.body?.text ?? "").trim();
 
     if (!text) {
         return res.status(400).json({ message: "Todo text is required" });
     }
 
-    const todo = {
-        id: randomUUID(),
-        text,
-        completed: false,
-        createdAt: new Date().toISOString(),
-    };
-
-    todos.unshift(todo);
-    res.status(201).json(todo);
+    const created = await Task.create({ text, completed: false });
+    res.status(201).json(mapTask(created));
 });
 
-app.patch("/api/todos/:id", (req, res) => {
-    const todo = todos.find((item) => item.id === req.params.id);
+app.patch("/api/todos/:id", async (req, res) => {
+    const task = await Task.findById(req.params.id);
 
-    if (!todo) {
+    if (!task) {
         return res.status(404).json({ message: "Todo not found" });
     }
 
-    todo.completed = !todo.completed;
-    res.json(todo);
+    task.completed = !task.completed;
+    await task.save();
+    res.json(mapTask(task));
 });
 
-app.delete("/api/todos/:id", (req, res) => {
-    const index = todos.findIndex((item) => item.id === req.params.id);
+app.delete("/api/todos/:id", async (req, res) => {
+    const removed = await Task.findByIdAndDelete(req.params.id);
 
-    if (index === -1) {
+    if (!removed) {
         return res.status(404).json({ message: "Todo not found" });
     }
 
-    const [removed] = todos.splice(index, 1);
-    res.json(removed);
+    res.json(mapTask(removed));
 });
 
 const PORT = process.env.PORT || 5000;
